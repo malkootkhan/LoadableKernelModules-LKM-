@@ -37,11 +37,12 @@ static int dummy_release(struct inode *, struct file *);
 	struct device *my_device;		/*device struct */
 	char device_buff[MAX_BUFF_SIZE];	/*dummy device storage*/
 
-
- static loff_t dummy_llseek(struct file *, loff_t, int)
+static int dummy_open(struct inode *, struct file *)
 {
+	printk("The device is opened\n");
 	return 0;
 }
+
 static ssize_t dummy_read(struct file *filp, char __user *buff, size_t count, loff_t *f_pos)
 {
 	printk("TestPoint in %s: Executing from function: ", __func__);
@@ -51,8 +52,6 @@ static ssize_t dummy_read(struct file *filp, char __user *buff, size_t count, lo
 	if (*f_pos+count >= MAX_BUFF_SIZE)
 		count = MAX_BUFF_SIZE - *f_pos;
 	
-	if(count <= 0)
-		return count;
 
 	if(copy_to_user(buff, &device_buff[*f_pos], count))
 		return -EFAULT; /*bad address macro in errno-base.h*/
@@ -62,20 +61,36 @@ static ssize_t dummy_read(struct file *filp, char __user *buff, size_t count, lo
 
 
 	printk("TestpoinT in %s: the updated file position: %lld\n",__func__, *f_pos);
-	return 0;
+	return count;
 }
-static ssize_t dummy_write (struct file *, const char __user *, size_t, loff_t *)
+
+static ssize_t dummy_write (struct file *filp, const char __user *buff, size_t count, loff_t *f_pos)
 {
-	printk("The device is written\n");
+	printk("TestPoint in %s: current position: %lld", __func__, *f_pos);
+	/*check the buffer overflow*/
+	if ( *f_pos + count >= MAX_BUFF_SIZE )
+		count = MAX_BUFF_SIZE - *f_pos;
+
+	/*copy from user tokernel*/
+	if(copy_from_user(&device_buff[*f_pos], buff, count))
+		return -EFAULT; /*bad address macro in errno-base.h*/
+
+	if(!count)
+		return -ENOMEM; /*if the return is non-zero it means there is no space and the kernel has special macro for that  which is ENOMEM in errno-base.h*/ 
+	
+	/*update the position*/
+	*f_pos += count;
+
+	printk("TestPoint in %s: updated positon: %lld\n", __func__, *f_pos);
+	return count;
+}
+
+static loff_t dummy_llseek(struct file *, loff_t, int)
+{
 	return 0;
 }
 static long dummy_ioctl(struct file *, unsigned int, unsigned long)
 {
-	return 0;
-}
-static int dummy_open(struct inode *, struct file *)
-{
-	printk("The device is opened\n");
 	return 0;
 }
 static int dummy_release(struct inode *, struct file *)
