@@ -71,12 +71,12 @@ static ssize_t dummy_write (struct file *filp, const char __user *buff, size_t c
 	if ( *f_pos + count >= MAX_BUFF_SIZE )
 		count = MAX_BUFF_SIZE - *f_pos;
 
+	if(!count)
+		return -ENOMEM; /*if the return is non-zero it means there is no space and the kernel has special macro for that  which is ENOMEM in errno-base.h*/ 
+	
 	/*copy from user tokernel*/
 	if(copy_from_user(&device_buff[*f_pos], buff, count))
 		return -EFAULT; /*bad address macro in errno-base.h*/
-
-	if(!count)
-		return -ENOMEM; /*if the return is non-zero it means there is no space and the kernel has special macro for that  which is ENOMEM in errno-base.h*/ 
 	
 	/*update the position*/
 	*f_pos += count;
