@@ -71,9 +71,10 @@ static ssize_t dummy_write (struct file *filp, const char __user *buff, size_t c
 	if ( *f_pos + count >= MAX_BUFF_SIZE )
 		count = MAX_BUFF_SIZE - *f_pos;
 
-	if(!count)
+	if(!count) {
+		printk("There is no memory space left on the device\n");
 		return -ENOMEM; /*if the return is non-zero it means there is no space and the kernel has special macro for that  which is ENOMEM in errno-base.h*/ 
-	
+	}
 	/*copy from user tokernel*/
 	if(copy_from_user(&device_buff[*f_pos], buff, count))
 		return -EFAULT; /*bad address macro in errno-base.h*/
@@ -85,9 +86,54 @@ static ssize_t dummy_write (struct file *filp, const char __user *buff, size_t c
 	return count;
 }
 
-static loff_t dummy_llseek(struct file *, loff_t, int)
+static loff_t dummy_llseek(struct file *file, loff_t offset, int whence)
 {
-	return 0;
+	/*
+	 * whence can have following values defined in types.h for lseek() 
+	*#define SEEK_SET       0
+	*#define SEEK_CUR       1
+	*#define SEEK_END       2
+	I think linux kernel maitainer should replace these macros with enum which will be type safe and reuasability and understandability more clarity but it will be difficult to change at this stage as the kernel is used in million of application
+	recommended way:
+	typedef enum {
+    SEEK_SET = 0,
+    SEEK_CUR = 1,
+    SEEK_END = 2
+} SeekWhence;
+
+e.g:
+static long dummy_ioctl(struct file *, unsigned int, SeekWhence whence)
+	*/
+
+
+/*offset is gap from any reference point such as start and to current position, */
+loff_t temp ;
+
+printk("TestPoint in %s: current file position: %lld\n", __func__, file->f_pos);
+
+switch(whence){
+	case SEEK_SET:
+		if(offset > MAX_BUFF_SIZE || offset < 0)
+			return -EINVAL; /* Invalid argument */
+		file->f_pos = offset;
+		break;
+	case SEEK_CUR:
+		temp = file->f_pos + offset;
+		if(temp > MAX_BUFF_SIZE || temp < 0)
+			return -EINVAL; /*invalid argument*/
+		file->f_pos = temp;
+		break;
+	case SEEK_END:
+		temp = file->f_pos + offset;
+		if(temp > MAX_BUFF_SIZE || temp < 0)
+			return -EINVAL; /*invalid argument*/
+		file->f_pos = temp;
+		break;
+	default:
+		return -EINVAL;
+	}
+	printk("TestPoint in %s: updated file position: %lld\n", __func__, file->f_pos);
+	return file->f_pos;
 }
 static long dummy_ioctl(struct file *, unsigned int, unsigned long)
 {
