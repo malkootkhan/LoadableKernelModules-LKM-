@@ -1,15 +1,70 @@
 #include "dummy_dev_common.h"
 
-struct dummy_device *dev_instance;
+struct dummy_driver *drv_instance;
 
-int dummy_open(struct inode *, struct file *)
+struct dummy_device* create_dummy_device(void)
 {
-	printk("The device is opened\n");
-	return 0;
+	struct dummy_device *dev;
+	dev = kmalloc(sizeof(struct dummy_device)*NO_OF_DEVICES, GFP_KERNEL); /*GFP_KERNEL is a global kernel flag used for normal alloc where sleeping or blocking is allowed*/
+	char serial_no[25];
+	struct file_operations fops = {
+		.owner = THIS_MODULE,
+		.open = dummy_open,
+		.read = dummy_read,
+		.write = dummy_write,
+		.llseek = dummy_llseek,
+		.unlocked_ioctl = dummy_ioctl,
+		.release = dummy_release
+	};
+	for (int i = 0; i < NO_OF_DEVICES; i++)
+	{
+		sprintf(serial_no, "dummy_dev_serial_no_%d", i+1);
+		dev[i].dum_dev_buff = kmalloc(sizeof(char)*MAX_BUFF_SIZE, GFP_KERNEL);
+		dev[i].serial_number = kmalloc(sizeof(char)*25, GFP_KERNEL);
+		strcpy(dev[i].serial_number, serial_no);
+		dev[i].dum_fops = fops;
+	}
+	dev[0].dum_perm = READONLY;
+	dev[1].dum_perm = WRONLY;
+	dev[2].dum_perm = RWR;
+
+	return dev;
+}
+int access_perm(int f_mode, int access_mode )
+{
+
+	if(f_mode == RWR)
+		return SUCCESS;
+
+	if( (f_mode == READONLY) && (access_mode & FMODE_READ) && !(access_mode & FMODE_WRITE))
+		return SUCCESS;
+	
+	if ( (f_mode == WRONLY) && (access_mode & FMODE_WRITE) && !(access_mode & FMODE_READ))
+		return SUCCESS;
+	
+	return -EPERM;
+}
+int dummy_open(struct inode *inode, struct file *filp)
+{
+	int ret;
+	struct dummy_device *dev_data;
+
+	/*this is standard kernel macro used to obtained the container structuer address from the inside member */
+	dev_data = container_of(inode->i_cdev, struct dummy_device, dum_cdev);
+
+	/*this struct is initialized by kernel when file is open from user space app, we use the private_data pointer to hold data*/
+	filp->private_data = dev_data;				
+	ret = access_perm(dev_data->dum_perm, filp->f_mode);
+
+	(!ret)?printk("Operation was successful\n"):printk("Operation is not permitted\n");
+
+	return ret;
 }
 
 ssize_t dummy_read(struct file *filp, char __user *buff, size_t count, loff_t *f_pos)
 {
+	struct dummy_device *dev = filp->private_data;
+
 	printk("TestPoint in %s: Executing from function: ", __func__);
 	printk("TestPoint in %s: current file position: %lld", __func__, *f_pos);
 	
@@ -17,9 +72,9 @@ ssize_t dummy_read(struct file *filp, char __user *buff, size_t count, loff_t *f
 	if (*f_pos+count >= MAX_BUFF_SIZE)
 		count = MAX_BUFF_SIZE - *f_pos;
 	
-
-	if(copy_to_user(buff, &dev_instance->dum_dev_buff[*f_pos], count))
-		return -EFAULT; /*bad address macro in errno-base.h*/
+	/*bad address macro in errno-base.h*/
+	if(copy_to_user(buff, dev->dum_dev_buff + *f_pos, count))
+		return -EFAULT; 
 
 	/*update the position value*/
 	*f_pos += count;
@@ -31,17 +86,20 @@ ssize_t dummy_read(struct file *filp, char __user *buff, size_t count, loff_t *f
 
 ssize_t dummy_write (struct file *filp, const char __user *buff, size_t count, loff_t *f_pos)
 {
+	struct dummy_device *dev = filp->private_data;
 	printk("TestPoint in %s: current position: %lld", __func__, *f_pos);
+
 	/*check the buffer overflow*/
 	if ( *f_pos + count >= MAX_BUFF_SIZE )
 		count = MAX_BUFF_SIZE - *f_pos;
-
+	
+	/*if the return is non-zero it means there is no space and the kernel has special macro for that  which is ENOMEM in errno-base.h*/ 
 	if(!count) {
 		printk("There is no memory space left on the device\n");
-		return -ENOMEM; /*if the return is non-zero it means there is no space and the kernel has special macro for that  which is ENOMEM in errno-base.h*/ 
+		return -ENOMEM; 
 	}
 	/*copy from user tokernel*/
-	if(copy_from_user(&dev_instance->dum_dev_buff[*f_pos], buff, count))
+	if(copy_from_user(dev->dum_dev_buff + *f_pos, buff, count))
 		return -EFAULT; /*bad address macro in errno-base.h*/
 	
 	/*update the position*/
@@ -108,22 +166,5 @@ int dummy_release(struct inode *, struct file *)
 {
 	printk("The device is closed\n");
 	return 0;
-}
-struct dummy_device* create_dummy_device(void)
-{
-	struct dummy_device *dev;
-	dev = kmalloc(sizeof(struct dummy_device), GFP_KERNEL); /*GFP_KERNEL is a global kernel flag used for normal alloc where sleeping or blocking is allowed*/
-
-	struct file_operations fops = {
-		.owner = THIS_MODULE,
-		.open = dummy_open,
-		.read = dummy_read,
-		.write = dummy_write,
-		.llseek = dummy_llseek,
-		.unlocked_ioctl = dummy_ioctl,
-		.release = dummy_release
-	};
-	dev->dum_fops = fops;
-	return dev;
 }
 
