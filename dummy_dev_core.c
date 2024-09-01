@@ -15,13 +15,13 @@ static int __init dummy_driver_init(void){
 	drv_instance = create_dummy_driver();
 
 	/*alloc device number alloc_chrdev_region()*/
-	ret = alloc_chrdev_region(&drv_instance->dum_dev_numb, 0, NO_OF_DEVICES, "dummy-device");
+	ret = alloc_chrdev_region(&drv_instance->dum_dev_numb, 0, NO_OF_DEVICES, "dummy_dev_reg");
 	if(ret < 0){
 		printk("Device registration is not successful\n");
 		goto alloc_chrdev_error;
 	}
 
-	drv_instance->dum_dev_class = class_create("dummy_dum_dev_class");
+	drv_instance->dum_dev_class = class_create("dummy_dev_class");
 	if(IS_ERR(drv_instance->dum_dev_class))
 	{
 		printk("device class couldn't create\n");
@@ -30,9 +30,9 @@ static int __init dummy_driver_init(void){
 
 	}
 
-	for(i =0; i < NO_OF_DEVICES; i++)
+	for(i = 0; i < NO_OF_DEVICES; i++)
 	{
-		char device_unique_name[32];
+		char device_unique_name[18];
 
 		sprintf(device_unique_name, "dummy_device_%d", i + 1);
 
@@ -41,8 +41,8 @@ static int __init dummy_driver_init(void){
 		drv_instance->dev_instance[i].dum_cdev.owner = THIS_MODULE;
 
 		/*3. add device to the system: cdev_add()*/
-	//	dev_t curr_dev_number =  MKDEV(MAJOR(drv_instance->dum_dev_numb), MINOR(drv_instance->dum_dev_numb));
-		ret = cdev_add(&drv_instance->dev_instance[i].dum_cdev, drv_instance->dum_dev_numb, 1);
+	//	dev_t curr_dev_number =  MKDEV(MAJOR(drv_instance->dum_dev_numb), (MINOR(drv_instance->dum_dev_numb) + i) );
+		ret = cdev_add(&drv_instance->dev_instance[i].dum_cdev, drv_instance->dum_dev_numb + i, 1);
 		if(ret < 0){
 			printk("device_%d couldn't add to system\n", i+1);
 			goto cdev_add_error;
