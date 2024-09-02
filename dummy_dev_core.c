@@ -80,8 +80,9 @@ alloc_chrdev_error:
 }
 
 static void __exit dummy_driver_exit(void){
-	
-	device_destroy(drv_instance->dum_dev_class, drv_instance->dum_dev_numb);
+
+	for(int i = 0; i < NO_OF_DEVICES; i++)
+		device_destroy(drv_instance->dum_dev_class, drv_instance->dum_dev_numb+i);
 	class_destroy(drv_instance->dum_dev_class);
 	for(int i = 0; i < NO_OF_DEVICES; i++)
 	{
@@ -90,6 +91,7 @@ static void __exit dummy_driver_exit(void){
 		kfree(drv_instance->dev_instance[i].serial_number);
 	}
 	unregister_chrdev_region(drv_instance->dum_dev_numb/*firstDevNo*/, NO_OF_DEVICES/*device cout*/);
+	kfree(drv_instance->dev_instance);
 	kfree(drv_instance);
 	printk("The device is successfully unloaded!\n");
 
