@@ -4,12 +4,14 @@
 
 #include "platform.h" /*creating our own header and define our own struct for platform device data for two devices*/
 
-#define NO_OF_DEVICES       (2)
+/*3. adding release function, the function pointer is in struct device*/
+void	dummy_platform_dev_release (struct device *dev)
+{
+	/*here the dynamically allcoated memory will be freed if needed*/
+	/*when device unregister function takes address of struct platform_device instance that calls release as callback function to free dynamically allocated mmemory*/
+  pr_info("Dummy platform device release\n");
+}
 
-#define RDONLY                (1)
-#define WRONLY                (2)
-#define RDWR                  (3)
-#define BUFF_SIZE             (512)
 /*2. create instances for the platform data*/
 
 struct platform_dummy_dev_data platform_dev_data[NO_OF_DEVICES] = {
@@ -24,20 +26,26 @@ struct platform_dummy_dev_data platform_dev_data[NO_OF_DEVICES] = {
 struct platform_device dummy_platform_dev_1 = {
   .name = "my_dummy_platform_device",
   .id = 0,
-  .dev.platform_data = &platform_dev_data[0]
+  .dev = {
+    .platform_data = &platform_dev_data[0],
+    .release =dummy_platform_dev_release
+      }
 };
 struct platform_device dummy_platform_dev_2 = {
   .name = "my_device_platform_device",
   .id = 1,
-  .dev.platform_data = &platform_dev_data[1]
+  .dev = {
+    .platform_data = &platform_dev_data[1],
+    .release = dummy_platform_dev_release
+      }
 };
 /*as usual we have to register these devices*/
-
 static int __init dummy_platform_dev_init(void)
 {
   /*Register platform devices => later should be unregistered in exit function*/
   platform_device_register(&dummy_platform_dev_1);
   platform_device_register(&dummy_platform_dev_2);
+  pr_info("Device inserted \n");
 
 
   return 0;
@@ -47,6 +55,7 @@ static void __exit dummy_platform_dev_exit(void)
 {
   platform_device_unregister(&dummy_platform_dev_1);
   platform_device_unregister(&dummy_platform_dev_2);
+  pr_info("Device removed \n");
 }
 
 
