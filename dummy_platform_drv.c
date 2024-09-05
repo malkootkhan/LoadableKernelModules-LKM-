@@ -1,12 +1,4 @@
-#include <linux/module.h>
-#include <linux/kernel.h>
-#include <linux/fs.h>
-#include <linux/types.h>
-#include <linux/uaccess.h>
-#include <linux/cdev.h>
-#include <linux/slab.h>
-#include <linux/gfp_types.h>
-#include <linux/platform_device.h>
+#include "platform.h"
 
 /*methods prototypes*/
 int platform_drv_open(struct inode *inode, struct file *filp);
@@ -92,20 +84,37 @@ struct platform_driver dummy_platform_drv = {
     }
 };
 
-
+struct platform_drv_private_data dummy_drv_instance;
 
 static int __init dummy_platform_drv_init(void)
 {
-      
+      int ret;
+      /*1. allocate device number dynamically*/
+	ret = alloc_chrdev_region(&dummy_drv_instance.dev_numb_base, 0, MAX_DEVICES, "dummy_driver");
+	if(ret < 0){
+		pr_err("Device allocation failed\n");
+		return ret;
+	}
+      dummy_drv_instance.dummy_class = class_create("platform_drv_class");
+      if(IS_ERR(dummy_drv_instance.dummy_class))
+      {
+        pr_err("Device class creation failed\n");
+        ret = PTR_ERR(dummy_drv_instance.dummy_class);
+        unregister_chrdev_region(dummy_drv_instance.dev_numb_base, MAX_DEVICES);
+        return ret;
+      }
       platform_driver_register(&dummy_platform_drv);
-      printk("dummy platform driver is inserted to kernel successfully\n");
+      pr_info("dummy platform driver is inserted successfully\n");
     return 0;
 }
 
 static void __exit dummy_platform_drv_exit(void)
 {
+
         platform_driver_unregister(&dummy_platform_drv);
- 	printk("dummy platform driver removed from kernel successfully\n");
+        class_destroy(dummy_drv_instance.dummy_class);
+        unregister_chrdev_region(dummy_drv_instance.dev_numb_base, MAX_DEVICES);
+ 	pr_info("dummy platform driver removed successfully\n");
 }
 
 
