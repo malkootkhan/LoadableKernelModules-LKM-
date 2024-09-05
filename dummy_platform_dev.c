@@ -2,6 +2,20 @@
 #include <linux/kernel.h>
 #include <linux/platform_device.h> /*this struct holds the device register/unregister operations and struct platform_device*/
 
+#include "platform.h" /*creating our own header and define our own struct for platform device data for two devices*/
+
+#define NO_OF_DEVICES       (2)
+
+#define RDONLY                (1)
+#define WRONLY                (2)
+#define RDWR                  (3)
+#define BUFF_SIZE             (512)
+/*2. create instances for the platform data*/
+
+struct platform_dummy_dev_data platform_dev_data[NO_OF_DEVICES] = {
+  [0] = {.size = BUFF_SIZE, .dev_serial_no = "dummy_xyz123", .permission = RDWR  },
+  [1] = {.size = BUFF_SIZE, .dev_serial_no = "dummy_xyz456", .permission = RDWR  }
+};
 
 /*1. The first and most important thing we do here: create platform device using struct paltform_device*/
 
@@ -9,11 +23,13 @@
 /*there are more members but for now we initize only these two, id shows an index somehow for platform devic*/
 struct platform_device dummy_platform_dev_1 = {
   .name = "my_dummy_platform_device",
-  .id = 0
+  .id = 0,
+  .dev.platform_data = &platform_dev_data[0]
 };
 struct platform_device dummy_platform_dev_2 = {
   .name = "my_device_platform_device",
-  .id = 1
+  .id = 1,
+  .dev.platform_data = &platform_dev_data[1]
 };
 /*as usual we have to register these devices*/
 
