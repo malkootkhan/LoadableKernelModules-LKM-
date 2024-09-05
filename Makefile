@@ -1,7 +1,4 @@
-obj-m := dummy_dev_drv.o 
-
-
-dummy_dev_drv-objs := dummy_dev_core.o dummy_dev_ops.o
+obj-m := dummy_platform_drv.o dummy_platform_dev.o
 
 KERN_REL = $(shell uname -r)
 MOD_DIR = /lib/modules

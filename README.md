@@ -1,1 +1,1 @@
-This branch has the implementaion of dummy character driver for multiple devices
+This branch "platform_dev_drv" contains the code for creating dummy platform device
