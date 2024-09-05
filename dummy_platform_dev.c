@@ -32,7 +32,7 @@ struct platform_device dummy_platform_dev_1 = {
       }
 };
 struct platform_device dummy_platform_dev_2 = {
-  .name = "my_device_platform_device",
+  .name = "my_dummy_platform_device",
   .id = 1,
   .dev = {
     .platform_data = &platform_dev_data[1],

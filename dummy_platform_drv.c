@@ -6,6 +6,7 @@
 #include <linux/cdev.h>
 #include <linux/slab.h>
 #include <linux/gfp_types.h>
+#include <linux/platform_device.h>
 
 /*methods prototypes*/
 int platform_drv_open(struct inode *inode, struct file *filp);
@@ -15,6 +16,10 @@ loff_t platform_drv_llseek(struct file *filp, loff_t, int);
 int platform_drv_release(struct inode *inode, struct file *filp);
 long platform_drv_ioctl(struct file *filp, unsigned int, unsigned long);
 
+
+/*probe and remove function prototypes*/
+int dummy_platform_drv_probe(struct platform_device *);
+int dummy_platform_drv_remove(struct platform_device *);
 
 int platform_drv_open(struct inode *inode, struct file *filp)
 {
@@ -65,16 +70,41 @@ struct file_operations fops = {
   .unlocked_ioctl = platform_drv_ioctl
 };
 
+/*Basic implementation of probe and remove function*/
+int dummy_platform_drv_probe(struct platform_device *)
+{
+  pr_info("Device is detected. function: %s\n", __func__);
+  return 0;
+}
+
+int dummy_platform_drv_remove(struct platform_device *)
+{
+  pr_info("Device is removed. function: %s\n", __func__);
+  return 0;
+}
+
+/*1. new thing to be done is creating driver structure instance as we have done for platform device struct platform_device instance*/
+struct platform_driver dummy_platform_drv = {
+  .probe = dummy_platform_drv_probe,  /*Callback function called on match between device name and driver provided name*/
+  .remove = dummy_platform_drv_remove, /*when disconnecting driver from kernel, this callback function is called to ensure removal*/
+  .driver = {
+    .name = "my_dummy_platform_device" /*should be exactly the same as the device name, so that at match the probe callback function will be called*/
+    }
+};
+
+
+
 static int __init dummy_platform_drv_init(void)
 {
-
- 	printk("dummy platform driver inserted to kernel successfully\n");
-  return 0;
+      
+      platform_driver_register(&dummy_platform_drv);
+      printk("dummy platform driver is inserted to kernel successfully\n");
+    return 0;
 }
 
 static void __exit dummy_platform_drv_exit(void)
 {
-
+        platform_driver_unregister(&dummy_platform_drv);
  	printk("dummy platform driver removed from kernel successfully\n");
 }
 
