@@ -23,7 +23,7 @@
 
 void dummy_platform_dev_release (struct device *dev);
 
-struct platform_dummy_dev_data 
+struct dummy_platform_data 
 {
   int size;
   const char *dev_serial_no;
@@ -31,9 +31,9 @@ struct platform_dummy_dev_data
 };
 
 /*creating our own structures to hold device related info and driver info*/
-struct platform_dev_private_data 
+struct dummy_pdev_private_data 
 {
-  struct platform_dummy_dev_data dev_private_data;
+  struct dummy_platform_data dev_private_data;
   char *buffer;       /*dynamically allocated when probe function is called device detected*/
   dev_t dev_numb;     /*actual device number*/
   struct cdev cdev;   /*device structure*/

@@ -14,7 +14,7 @@ void	dummy_platform_dev_release (struct device *dev)
 
 /*2. create instances for the platform data*/
 
-struct platform_dummy_dev_data platform_dev_data[NO_OF_DEVICES] = {
+struct dummy_platform_data platform_dev_data[NO_OF_DEVICES] = {
   [0] = {.size = BUFF_SIZE, .dev_serial_no = "dummy_xyz123", .permission = RDWR  },
   [1] = {.size = BUFF_SIZE, .dev_serial_no = "dummy_xyz456", .permission = RDWR  }
 };

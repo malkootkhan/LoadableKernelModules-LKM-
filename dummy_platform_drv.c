@@ -63,8 +63,20 @@ struct file_operations fops = {
 };
 
 /*Basic implementation of probe and remove function*/
-int dummy_platform_drv_probe(struct platform_device *)
+int dummy_platform_drv_probe(struct platform_device *pdev)
 {
+  /*our own device data structure*/
+  struct dummy_pdev_private_data *pdev_private_data;
+  /*temporary pointer to */
+  struct dummy_platform_data *pdata;
+  /*taking data from pdev->get_private_data*/
+  pdata = (struct dummy_platform_data *)platform_get_drvdata(pdev);
+  if(!pdata)
+  {
+    pr_info("no platform data is available\n");
+    return -EINVAL;
+  }
+
   pr_info("Device is detected. function: %s\n", __func__);
   return 0;
 }
