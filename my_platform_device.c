@@ -1,5 +1,9 @@
 #include <linux/module.h>
 #include <linux/platform_device.h>
+#include <linux/cdev.h>
+
+#define     NO_OF_DEVICES       (2)
+#define     RDWR                (1)
 
 /*platform device structure, to create devices*/
 struct platform_device my_pdev_1 = {
@@ -20,8 +24,8 @@ struct platform_dev_data {
 };
 
 struct platform_dev_data my_pdev_data[NO_OF_DEVICES] = {
-    .[0] = {512, "XYZ123_serial_number", RDWR},
-    .[1] = {512, "XYZ456_serial_number", RDWR}
+    {512, "XYZ123_serial_number", RDWR}, 
+    {512, "XYZ456_serial_number", RDWR}
 };
 
 
