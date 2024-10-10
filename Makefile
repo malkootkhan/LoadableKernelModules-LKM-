@@ -1,4 +1,4 @@
-obj-m := dummy_platform_drv.o dummy_platform_dev.o
+obj-m := my_platform_device.o
 
 KERN_REL = $(shell uname -r)
 MOD_DIR = /lib/modules
