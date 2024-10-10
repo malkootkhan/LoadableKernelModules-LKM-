@@ -1,27 +1,5 @@
 #include <linux/module.h>
-#include <linux/platform_device.h>
-#include <linux/cdev.h>
-
-#define     NO_OF_DEVICES       (2)
-#define     RDWR                (1)
-
-/*platform device structure, to create devices*/
-struct platform_device my_pdev_1 = {
-    .name = "pdevice_1",
-    .id = 0
-};
-struct platform_device my_pdev_2 = {
-  .name = "pdevice_2",
-  .id = 1
-};
-
-/*Device data structure*/
-struct platform_dev_data {
-    int size;
-    const char *serial_number;
-    int permission;
-    struct cdev cdev;
-};
+#include "platform_dev.h"
 
 struct platform_dev_data my_pdev_data[NO_OF_DEVICES] = {
     {512, "XYZ123_serial_number", RDWR}, 
