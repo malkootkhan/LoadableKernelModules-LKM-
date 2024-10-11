@@ -11,3 +11,5 @@ help:
 
 clean:
 	make -C $(KERN_DIR) M=$(PWD) clean
+
+.PHONY: clean help						#.PHONY target indicates that clean/help are not actual files but command/target
