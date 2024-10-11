@@ -5,6 +5,8 @@
 
 #define     NO_OF_DEVICES       (2)
 #define     RDWR                (1)
+#define     RDONLY              (2)
+#define     WRONLY              (3)
 
 void release_dynamic_alloc(struct device *dev);
 

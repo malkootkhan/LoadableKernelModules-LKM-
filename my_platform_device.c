@@ -2,6 +2,7 @@
 #include <linux/platform_device.h>
 #include "platform_dev.h"
 
+/*initializing the data for both devices*/
 struct platform_dev_data my_pdev_data[NO_OF_DEVICES] = {
     {512, "XYZ123_serial_number", RDWR}, 
     {512, "XYZ456_serial_number", RDWR}
@@ -9,11 +10,11 @@ struct platform_dev_data my_pdev_data[NO_OF_DEVICES] = {
 
 struct platform_device my_pdev[NO_OF_DEVICES] = {
     [0] = {
-        .name = "my_first_pdev",
-        .id = 0,
+        .name = "my_first_pdev", //device name
+        .id = 0,                 //device id
         .dev = {
-            .release = release_dynamic_alloc,
-            .platform_data = &my_pdev_data[0]
+            .release = release_dynamic_alloc,  //callback function that frees the memory dynamically allocated 
+            .platform_data = &my_pdev_data[0]  //our device data, assigned to a void pointer within platform_device structure
         }
     },
     [1] = {
@@ -39,7 +40,7 @@ static int __init init_driver(void)
     /*register the platform devices and driver*/
     for(int device = 0; device < NO_OF_DEVICES; device++)
         platform_device_register(&my_pdev[device]);
-
+    pr_info("Devices registered\n");
     return 0;
 }
 
@@ -50,6 +51,7 @@ static void __exit exit_driver(void)
 
     for(int device = 0; device < NO_OF_DEVICES; device++)
         platform_device_unregister(&my_pdev[device]);
+    pr_info("Devices removed\n");
 }
 
 /*macro to register the these funcion with kernel*/
