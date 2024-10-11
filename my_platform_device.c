@@ -34,7 +34,7 @@ void release_dynamic_alloc(struct device *dev)
     pr_info("releases dynamically allocated memory if any");
 }
 /*init module to register platform device*/
-static int __init init_driver(void)
+static int __init init_device(void)
 {
 
     /*register the platform devices and driver*/
@@ -45,7 +45,7 @@ static int __init init_driver(void)
 }
 
 /*exit module to unregister platform device*/
-static void __exit exit_driver(void)
+static void __exit exit_device(void)
 {
     /*unregister platform driver and devices*/
 
@@ -55,8 +55,8 @@ static void __exit exit_driver(void)
 }
 
 /*macro to register the these funcion with kernel*/
-module_init(init_driver);
-module_exit(exit_driver);
+module_init(init_device);
+module_exit(exit_device);
 /*license information*/
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Malkoot Khan");

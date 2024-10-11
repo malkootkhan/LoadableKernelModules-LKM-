@@ -9,6 +9,8 @@
 #define     WRONLY              (3)
 
 void release_dynamic_alloc(struct device *dev);
+int pdrv_probe(struct platform_device *pdev);
+int pdrv_remove(struct platform_device *pdrv);
 
 struct platform_dev_data {
     int size;
